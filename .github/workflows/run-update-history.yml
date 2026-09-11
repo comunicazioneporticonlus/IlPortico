@@ -1,0 +1,26 @@
+name: Run history update
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/run-update-history.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update history bank
+        run: python3 scripts/update_history.py
+      - name: Commit changes
+        run: |
+          if git diff --quiet -- questions.js; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add questions.js
+          git commit -m "Sostituisci domande di storia con quesiti più soft"
+          git push

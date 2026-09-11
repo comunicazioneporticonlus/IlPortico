@@ -1,0 +1,111 @@
+name: Integrate GoatCounter analytics
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/integrate-goatcounter.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add GoatCounter and map quiz events
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          text = p.read_text(encoding='utf-8')
+
+          gc_script = '<script id="goatcounter-script" data-goatcounter="https://comunicazioneporticonlus.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>'
+          qr_script = '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>'
+          if gc_script not in text:
+              if qr_script not in text:
+                  raise SystemExit('QRCode script marker not found')
+              text = text.replace(qr_script, qr_script + '\n' + gc_script, 1)
+
+          new_tracker = r'''const goatEventQueue = [];
+
+function sendGoatEvent(path, title) {
+  const payload = { path, title, event: true, no_session: true };
+  if (window.goatcounter && typeof window.goatcounter.count === 'function') {
+    window.goatcounter.count(payload);
+  } else {
+    goatEventQueue.push(payload);
+  }
+}
+
+function flushGoatEvents() {
+  if (!window.goatcounter || typeof window.goatcounter.count !== 'function') return;
+  while (goatEventQueue.length) window.goatcounter.count(goatEventQueue.shift());
+}
+
+const goatScript = document.getElementById('goatcounter-script');
+if (goatScript) goatScript.addEventListener('load', flushGoatEvents);
+
+function trackEvent(eventName, params = {}) {
+  try {
+    if (eventName === 'nuova_opportunita_quiz_view') {
+      return; // GoatCounter registra già automaticamente la visualizzazione pagina.
+    }
+
+    if (eventName === 'nuova_opportunita_quiz_start') {
+      sendGoatEvent('quiz-start', 'Quiz iniziato');
+      return;
+    }
+
+    if (eventName === 'nuova_opportunita_quiz_complete') {
+      const score = Number.isFinite(params.score) ? params.score : 'n';
+      sendGoatEvent(`quiz-complete-score-${score}`, `Quiz completato - ${score}/10`);
+      return;
+    }
+
+    if (eventName === 'nuova_opportunita_contact_click') {
+      const type = String(params.contact_type || 'altro').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+      sendGoatEvent(`contact-${type}`, `Contatto - ${type}`);
+      return;
+    }
+
+    if (eventName === 'nuova_opportunita_share_click') {
+      const type = String(params.share_type || 'share').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+      sendGoatEvent(`share-${type}`, `Condivisione - ${type}`);
+    }
+  } catch (e) {}
+}'''
+
+          pattern = re.compile(r'function trackEvent\(eventName, params = \{\}\) \{.*?\n\}', re.S)
+          text, count = pattern.subn(new_tracker, text, count=1)
+          if count != 1:
+              raise SystemExit('trackEvent function not found')
+
+          old_copy = """function copyCurrentLink() {\n  navigator.clipboard.writeText(window.location.href).then(() => {\n    const btn = document.getElementById('copy-btn');"""
+          new_copy = """function copyCurrentLink() {\n  navigator.clipboard.writeText(window.location.href).then(() => {\n    trackEvent('nuova_opportunita_share_click', { share_type: 'copy-link' });\n    const btn = document.getElementById('copy-btn');"""
+          if old_copy in text:
+              text = text.replace(old_copy, new_copy, 1)
+
+          old_share = """function shareQuiz() {\n  if (navigator.share) {"""
+          new_share = """function shareQuiz() {\n  trackEvent('nuova_opportunita_share_click', { share_type: 'share-button' });\n  if (navigator.share) {"""
+          if old_share in text:
+              text = text.replace(old_share, new_share, 1)
+
+          p.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit changes
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Integra analitica GoatCounter"
+          git push

@@ -24,3 +24,4 @@ jobs:
           git add questions.js
           git commit -m "Sostituisci domande di storia con quesiti più soft"
           git push
+# trigger

@@ -1,0 +1,115 @@
+name: Enable random 50-question bank
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/enable-random-50.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch quiz logic
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          text = p.read_text(encoding='utf-8')
+
+          if '<script src="questions.js"></script>' not in text:
+              text = text.replace('<script>\nconst QUESTIONS = [', '<script src="questions.js"></script>\n<script>\nconst LEGACY_QUESTIONS = [', 1)
+
+          replacement = r'''let QUESTIONS = [];
+
+function shuffleArray(items) {
+  const array = [...items];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function prepareQuestion(question) {
+  const correctText = question.options[question.correct];
+  const shuffledOptions = shuffleArray(question.options);
+  return {
+    ...question,
+    options: shuffledOptions,
+    correct: shuffledOptions.indexOf(correctText)
+  };
+}
+
+function buildQuizQuestions() {
+  const bank = Array.isArray(window.QUESTION_BANK) && window.QUESTION_BANK.length ? window.QUESTION_BANK : LEGACY_QUESTIONS;
+  const subjects = [...new Set(bank.map(q => q.subject))];
+  const selected = [];
+  const selectedRefs = new Set();
+
+  subjects.forEach(subject => {
+    const pool = bank.filter(q => q.subject === subject);
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+    selected.push(picked);
+    selectedRefs.add(picked);
+  });
+
+  const remaining = shuffleArray(bank.filter(q => !selectedRefs.has(q)));
+  selected.push(...remaining.slice(0, Math.max(0, 10 - selected.length)));
+
+  return shuffleArray(selected.slice(0, 10).map(prepareQuestion));
+}
+
+let current = 0;'''
+
+          text, n = re.subn(r'let current = 0;', replacement, text, count=1)
+          if n != 1:
+              raise SystemExit('Impossibile trovare let current = 0')
+
+          old_start = '''function startQuiz() {
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.remove('hidden');
+  buildDots();
+  renderQuestion();
+  trackEvent('nuova_opportunita_quiz_start');
+}'''
+          new_start = '''function startQuiz() {
+  current = 0;
+  score = 0;
+  answers = [];
+  answered = false;
+  QUESTIONS = buildQuizQuestions();
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.remove('hidden');
+  buildDots();
+  renderQuestion();
+  trackEvent('nuova_opportunita_quiz_start', { question_bank_size: (window.QUESTION_BANK || []).length || LEGACY_QUESTIONS.length });
+}'''
+          if old_start in text:
+              text = text.replace(old_start, new_start, 1)
+
+          text = text.replace('<p><strong>10 domande miste</strong> per metterti alla prova prima dell\'esame di terza media. Italiano, matematica, storia, geografia, scienze e inglese.</p>', '<p><strong>10 domande ogni volta diverse</strong>, estratte da una banca di 50 quesiti, per metterti alla prova prima dell\'esame di terza media. Italiano, matematica, storia, geografia, scienze e inglese.</p>')
+          text = text.replace('<li>10 domande, con una sola risposta corretta</li>', '<li>10 domande casuali da una banca di 50, con tutte le materie rappresentate</li>')
+
+          p.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit change
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No change needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Quiz casuale: 10 domande da banca di 50"
+          git push

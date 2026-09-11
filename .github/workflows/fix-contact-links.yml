@@ -1,0 +1,48 @@
+name: Fix contact links
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-contact-links.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update contact links
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          text = p.read_text(encoding='utf-8')
+
+          old_map = 'href="https://www.google.com/maps/search/?api=1&query=Via+Feltre+3%2C+San+Dona+di+Piave"'
+          new_map = 'href="https://maps.app.goo.gl/YaHdupEBRfybxbff9?g_st=ic"'
+          text = text.replace(old_map, new_map)
+
+          old_fb = '''          <div class="contact-link" role="group" aria-label="Facebook">
+            <span class="contact-icon">f</span><span><span class="contact-label">Facebook</span><span class="contact-value">Nuova Opportunità – Accompagnamento Scolastico</span></span>
+          </div>'''
+          new_fb = '''          <a class="contact-link" href="https://www.facebook.com/search/top?q=Nuova%20Opportunit%C3%A0%20Accompagnamento%20Scolastico" target="_blank" rel="noopener" data-contact-type="facebook" data-contact-label="Nuova Opportunità - Accompagnamento Scolastico">
+            <span class="contact-icon">f</span><span><span class="contact-label">Facebook</span><span class="contact-value">Nuova Opportunità – Accompagnamento Scolastico</span></span>
+          </a>'''
+          text = text.replace(old_fb, new_fb)
+
+          p.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit changes
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Correggi link Facebook e mappa"
+          git push

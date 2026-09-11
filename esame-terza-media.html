@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Esame di Terza Media — Mini Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --paper:#fffef8;
+    --grid:#c9dbee;
+    --margin-red:#d6455a;
+    --ink:#1e2a45;
+    --ink-soft:#3d4b68;
+    --correct:#2f7d4f;
+    --correct-bg:#e7f4ec;
+    --wrong:#c0392b;
+    --wrong-bg:#fbeaea;
+    --gold:#b8860b;
+    --card:#ffffff;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 33px,
+        var(--grid) 33px, var(--grid) 34px
+      ),
+      var(--paper);
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 64px;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;
+    top:0; bottom:0; left:calc(50% - 320px);
+    width:2px;
+    background:var(--margin-red);
+    opacity:0.55;
+  }
+
+  @media (max-width: 700px){
+    body::before{ left:28px; }
+  }
+
+  .page{
+    width:100%;
+    max-width:600px;
+    position:relative;
+  }
+
+  .masthead{
+    text-align:center;
+    margin-bottom:28px;
+  }
+
+  .masthead h1{
+    font-family:'Kalam', cursive;
+    font-weight:700;
+    font-size:2.5rem;
+    margin:0 0 4px;
+    color:var(--ink);
+    line-height:1.1;
+  }
+
+  .masthead p{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:0.95rem;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid #e2e6ee;
+    border-radius:6px;
+    box-shadow:0 6px 0 -3px #e2e6ee, 0 10px 24px rgba(30,42,69,0.06);
+    padding:32px 28px;
+  }
+
+  /* --- START SCREEN --- */
+  #start-screen .intro{
+    font-size:1.02rem;
+    line-height:1.6;
+    color:var(--ink-soft);
+    margin-bottom:22px;
+  }
+
+  #start-screen .rules{
+    list-style:none;
+    padding:0;
+    margin:0 0 26px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  #start-screen .rules li{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    font-size:0.95rem;
+    color:var(--ink-soft);
+  }
+
+  #start-screen .rules li::before{
+    content:'—';
+    color:var(--margin-red);
+    font-weight:700;
+  }
+
+  button.primary{
+    width:100%;
+    padding:16px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:5px;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:1.05rem;
+    cursor:pointer;
+    transition:transform 0.12s ease, background 0.12s ease;
+  }
+
+  button.primary:hover{ background:#2c3b5c; }
+  button.primary:active{ transform:scale(0.98); }
+
+  /* --- QUIZ SCREEN --- */
+  .quiz-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+  }
+
+  .quiz-top .counter{
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    font-weight:600;
+  }
+
+  .dots{
+    display:flex;
+    gap:6px;
+  }
+
+  .dots span{
+    width:9px; height:9px;
+    border-radius:50%;
+    background:#dfe4ee;
+    display:block;
+  }
+
+  .dots span.done{ background:var(--ink); }
+  .dots span.done.wrong{ background:var(--wrong); }
+
+  .subject-tag{
+    display:inline-block;
+    font-family:'Kalam', cursive;
+    font-size:0.95rem;
+    color:var(--margin-red);
+    margin-bottom:6px;
+  }
+
+  .question{
+    font-size:1.2rem;
+    line-height:1.45;
+    margin:0 0 22px;
+    color:var(--ink);
+  }
+
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .option{
+    text-align:left;
+    padding:14px 16px;
+    border:1.5px solid #e2e6ee;
+    border-radius:5px;
+    background:#fbfcfe;
+    font-family:'Inter', sans-serif;
+    font-size:0.98rem;
+    color:var(--ink);
+    cursor:pointer;
+    transition:border-color 0.12s ease, background 0.12s ease;
+  }
+
+  .option:hover:not(:disabled){
+    border-color:var(--ink);
+  }
+
+  .option:disabled{ cursor:default; }
+
+  .option.correct{
+    border-color:var(--correct);
+    background:var(--correct-bg);
+    color:var(--correct);
+    font-weight:600;
+  }
+
+  .option.wrong{
+    border-color:var(--wrong);
+    background:var(--wrong-bg);
+    color:var(--wrong);
+    font-weight:600;
+    text-decoration:line-through;
+  }
+
+  .feedback{
+    margin-top:18px;
+    font-size:0.92rem;
+    padding:12px 14px;
+    border-radius:5px;
+    display:none;
+    line-height:1.5;
+  }
+
+  .feedback.show{ display:block; }
+  .feedback.ok{ background:var(--correct-bg); color:var(--correct); }
+  .feedback.ko{ background:var(--wrong-bg); color:var(--wrong); }
+
+  #next-btn{
+    margin-top:20px;
+    display:none;
+  }
+
+  #next-btn.show{ display:block; }
+
+  /* --- RESULT SCREEN --- */
+  #result-screen{ text-align:center; }
+
+  .stamp{
+    font-family:'Kalam', cursive;
+    font-weight:700;
+    font-size:1.7rem;
+    display:inline-block;
+    padding:10px 26px;
+    border:3px solid currentColor;
+    border-radius:8px;
+    transform:rotate(-4deg);
+    margin-bottom:18px;
+  }
+
+  .stamp.pass{ color:var(--correct); }
+  .stamp.fail{ color:var(--wrong); }
+
+  .score-big{
+    font-family:'Kalam', cursive;
+    font-size:3.2rem;
+    font-weight:700;
+    margin:6px 0 2px;
+  }
+
+  .score-label{
+    color:var(--ink-soft);
+    font-size:0.95rem;
+    margin-bottom:20px;
+  }
+
+  .result-note{
+    font-size:0.98rem;
+    line-height:1.6;
+    color:var(--ink-soft);
+    margin-bottom:24px;
+    text-align:left;
+    background:#f6f7fb;
+    border-radius:5px;
+    padding:16px 18px;
+  }
+
+  .review-list{
+    text-align:left;
+    margin:0 0 26px;
+    padding:0;
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .review-list li{
+    font-size:0.88rem;
+    padding:10px 12px;
+    border-radius:5px;
+    border:1px solid #e2e6ee;
+  }
+
+  .review-list li.was-wrong{ border-color:var(--wrong); background:var(--wrong-bg); }
+  .review-list li.was-right{ border-color:var(--correct); background:var(--correct-bg); }
+
+  .review-list .q{ font-weight:600; margin-bottom:4px; display:block; }
+
+  .btn-row{
+    display:flex;
+    gap:10px;
+  }
+
+  button.secondary{
+    flex:1;
+    padding:14px;
+    background:#fff;
+    border:1.5px solid var(--ink);
+    color:var(--ink);
+    border-radius:5px;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    cursor:pointer;
+  }
+
+  /* --- SHARE / QR --- */
+  .share-box{
+    margin-top:28px;
+    padding-top:24px;
+    border-top:1px dashed #d6dbe8;
+    text-align:center;
+  }
+
+  .share-box p{
+    font-size:0.88rem;
+    color:var(--ink-soft);
+    margin:0 0 14px;
+    line-height:1.5;
+  }
+
+  #qrcode{
+    display:inline-block;
+    padding:12px;
+    background:#fff;
+    border-radius:8px;
+    border:1px solid #e2e6ee;
+  }
+
+  #qrcode img, #qrcode canvas{
+    display:block;
+    border-radius:2px;
+  }
+
+  .copy-link{
+    margin-top:14px;
+    display:flex;
+    gap:8px;
+    max-width:400px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .copy-link input{
+    flex:1;
+    padding:10px 12px;
+    border-radius:5px;
+    border:1px solid #e2e6ee;
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    font-family:'Inter', sans-serif;
+  }
+
+  .copy-link button{
+    padding:10px 16px;
+    border-radius:5px;
+    border:none;
+    background:var(--ink);
+    color:var(--paper);
+    font-weight:600;
+    font-size:0.82rem;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="masthead">
+    <h1>Sei pronto per l'esame?</h1>
+    <p>10 domande miste per mettere alla prova la terza media</p>
+  </div>
+
+  <div class="card">
+
+    <!-- START -->
+    <div id="start-screen">
+      <p class="intro">Italiano, matematica, storia, geografia, scienze e inglese, mescolati come nel tema d'esame. Occhio: qualche domanda sembra facile ma nasconde un trabocchetto.</p>
+      <ul class="rules">
+        <li>10 domande, una risposta corretta ciascuna</li>
+        <li>Ti diciamo subito se hai sbagliato, e perché</li>
+        <li>Alla fine trovi il voto e il tabellone con gli errori</li>
+      </ul>
+      <button class="primary" onclick="startQuiz()">Inizia l'esame</button>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="quiz-screen" class="hidden">
+      <div class="quiz-top">
+        <span class="counter" id="counter-text">Domanda 1 di 10</span>
+        <div class="dots" id="dots"></div>
+      </div>
+      <span class="subject-tag" id="subject-tag"></span>
+      <p class="question" id="question-text"></p>
+      <div class="options" id="options-container"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="primary" id="next-btn" onclick="nextQuestion()">Prossima domanda</button>
+    </div>
+
+    <!-- RESULT -->
+    <div id="result-screen" class="hidden">
+      <div id="stamp-el" class="stamp">PROMOSSO</div>
+      <div class="score-big" id="score-big">8/10</div>
+      <div class="score-label" id="score-label">Voto: 8, distinto</div>
+      <div class="result-note" id="result-note"></div>
+      <ul class="review-list" id="review-list"></ul>
+      <div class="btn-row">
+        <button class="secondary" onclick="restartQuiz()">Rifai l'esame</button>
+      </div>
+
+      <div class="share-box">
+        <p>Per generare un QR funzionante, pubblica prima questo file su un indirizzo pubblico (ad esempio GitHub Pages o Netlify Drop) e incolla qui quel link. Il QR non funziona se punta a un file aperto solo sul tuo dispositivo.</p>
+        <div class="copy-link" style="margin-bottom:14px;">
+          <input type="text" id="link-input" placeholder="Incolla qui il link pubblico, es. https://tuosito.it/esame.html">
+          <button onclick="generateQR()" id="gen-btn">Genera QR</button>
+        </div>
+        <div id="qrcode"></div>
+        <div class="copy-link" id="copy-row" style="display:none;">
+          <input type="text" id="link-display" readonly>
+          <button onclick="copyLink()" id="copy-btn">Copia link</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    subject: "Italiano",
+    q: "Qual è il congiuntivo presente del verbo \"essere\" per la prima persona plurale (noi)?",
+    options: ["Sia", "Siamo", "Saremo", "Fossimo"],
+    correct: 1,
+    explain: "Il congiuntivo presente di \"essere\" alla prima persona plurale è \"noi siamo\", identico all'indicativo presente: è la forma che trae più in inganno."
+  },
+  {
+    subject: "Matematica",
+    q: "Quanto vale (−3)²?",
+    options: ["−9", "9", "−6", "6"],
+    correct: 1,
+    explain: "Elevare al quadrato un numero negativo dà sempre un risultato positivo: (−3) × (−3) = 9."
+  },
+  {
+    subject: "Storia",
+    q: "In che anno è terminata la Seconda Guerra Mondiale?",
+    options: ["1939", "1943", "1945", "1918"],
+    correct: 2,
+    explain: "La Seconda Guerra Mondiale è terminata nel 1945, con la resa del Giappone dopo la sconfitta della Germania nazista."
+  },
+  {
+    subject: "Geografia",
+    q: "Qual è la capitale dell'Australia?",
+    options: ["Sydney", "Melbourne", "Canberra", "Perth"],
+    correct: 2,
+    explain: "La capitale è Canberra, non Sydney: Sydney è la città più grande e famosa, ma non è la capitale."
+  },
+  {
+    subject: "Scienze",
+    q: "Quale organo produce l'insulina?",
+    options: ["Fegato", "Reni", "Pancreas", "Milza"],
+    correct: 2,
+    explain: "È il pancreas a produrre l'insulina, l'ormone che regola i livelli di zucchero nel sangue."
+  },
+  {
+    subject: "Inglese",
+    q: "Qual è la forma corretta del \"simple past\" del verbo \"go\"?",
+    options: ["Goed", "Gone", "Went", "Going"],
+    correct: 2,
+    explain: "\"Went\" è il simple past. \"Gone\" è il participio passato, usato con \"have/has\": è l'errore più comune."
+  },
+  {
+    subject: "Matematica",
+    q: "Quanto fa 7 × 8?",
+    options: ["54", "56", "58", "64"],
+    correct: 1,
+    explain: "7 × 8 = 56."
+  },
+  {
+    subject: "Italiano",
+    q: "Qual è il soggetto nella frase \"A Maria piace la pizza\"?",
+    options: ["Maria", "La pizza", "Piace", "A Maria"],
+    correct: 1,
+    explain: "Con il verbo \"piacere\" il soggetto grammaticale è la cosa che piace: qui è \"la pizza\", mentre \"Maria\" è il complemento di termine."
+  },
+  {
+    subject: "Storia",
+    q: "Chi ha scritto la Divina Commedia?",
+    options: ["Francesco Petrarca", "Giovanni Boccaccio", "Dante Alighieri", "Ludovico Ariosto"],
+    correct: 2,
+    explain: "La Divina Commedia è opera di Dante Alighieri, scritta tra il 1304 e il 1321 circa."
+  },
+  {
+    subject: "Scienze",
+    q: "Qual è il pianeta più vicino al Sole?",
+    options: ["Venere", "Terra", "Mercurio", "Marte"],
+    correct: 2,
+    explain: "Mercurio è il pianeta più vicino al Sole, non Venere, che è però il più caldo a causa della sua atmosfera."
+  }
+];
+
+let current = 0;
+let score = 0;
+let answers = []; // {correct: bool}
+let answered = false;
+
+function startQuiz(){
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.remove('hidden');
+  buildDots();
+  renderQuestion();
+}
+
+function buildDots(){
+  const dots = document.getElementById('dots');
+  dots.innerHTML = '';
+  for(let i=0;i<QUESTIONS.length;i++){
+    const s = document.createElement('span');
+    s.id = 'dot-'+i;
+    dots.appendChild(s);
+  }
+}
+
+function renderQuestion(){
+  answered = false;
+  const item = QUESTIONS[current];
+  document.getElementById('counter-text').textContent = `Domanda ${current+1} di ${QUESTIONS.length}`;
+  document.getElementById('subject-tag').textContent = item.subject;
+  document.getElementById('question-text').textContent = item.q;
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  item.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx);
+    container.appendChild(btn);
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  fb.textContent = '';
+  document.getElementById('next-btn').classList.remove('show');
+}
+
+function selectAnswer(idx){
+  if(answered) return;
+  answered = true;
+  const item = QUESTIONS[current];
+  const isCorrect = idx === item.correct;
+  answers.push({q: item.q, correct: isCorrect});
+  if(isCorrect) score++;
+
+  const buttons = document.querySelectorAll('.option');
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if(i === item.correct) b.classList.add('correct');
+    if(i === idx && !isCorrect) b.classList.add('wrong');
+  });
+
+  const dot = document.getElementById('dot-'+current);
+  dot.classList.add('done');
+  if(!isCorrect) dot.classList.add('wrong');
+
+  const fb = document.getElementById('feedback');
+  fb.classList.add('show', isCorrect ? 'ok' : 'ko');
+  fb.textContent = (isCorrect ? '✓ Esatto — ' : '✗ Non esatto — ') + item.explain;
+
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.textContent = current === QUESTIONS.length - 1 ? 'Vedi il risultato' : 'Prossima domanda';
+  nextBtn.classList.add('show');
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= QUESTIONS.length){
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult(){
+  document.getElementById('quiz-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.remove('hidden');
+
+  document.getElementById('score-big').textContent = `${score}/10`;
+
+  const stampEl = document.getElementById('stamp-el');
+  const labelEl = document.getElementById('score-label');
+  const noteEl = document.getElementById('result-note');
+
+  let voto, giudizio, note, passed;
+  if(score === 10){ voto = 10; giudizio = 'lode'; passed = true;
+    note = "Punteggio pieno. Conosci bene tutte le materie coinvolte, compresi i trabocchetti classici: sei nella posizione ideale per affrontare l'esame vero."; }
+  else if(score >= 8){ voto = score; giudizio = 'distinto'; passed = true;
+    note = "Un ottimo risultato. Rivedi solo le domande sbagliate qui sotto per chiudere gli ultimi dubbi."; }
+  else if(score >= 6){ voto = score; giudizio = 'sufficiente'; passed = true;
+    note = "Sei sulla strada giusta: la base c'è. Ripassa gli argomenti delle domande sbagliate, sono spesso gli stessi trabocchetti che capitano all'esame vero."; }
+  else { voto = score; giudizio = 'da rivedere'; passed = false;
+    note = "Ancora qualche argomento da consolidare, niente di grave: guarda con calma le spiegazioni qui sotto e riprova. È un gioco di allenamento, non l'esame vero."; }
+
+  stampEl.textContent = passed ? 'PROMOSSO' : 'DA RIPASSARE';
+  stampEl.className = 'stamp ' + (passed ? 'pass' : 'fail');
+  labelEl.textContent = `Voto: ${voto} (${giudizio})`;
+  noteEl.textContent = note;
+
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  answers.forEach((a, i) => {
+    const li = document.createElement('li');
+    li.className = a.correct ? 'was-right' : 'was-wrong';
+    li.innerHTML = `<span class="q">${i+1}. ${a.correct ? '✓' : '✗'} ${QUESTIONS[i].subject}</span>${QUESTIONS[i].q}`;
+    list.appendChild(li);
+  });
+
+  setupShare();
+}
+
+function setupShare(){
+  document.getElementById('qrcode').innerHTML = '';
+  document.getElementById('copy-row').style.display = 'none';
+}
+
+function generateQR(){
+  const url = document.getElementById('link-input').value.trim();
+  const qrContainer = document.getElementById('qrcode');
+  qrContainer.innerHTML = '';
+
+  if(!url || !/^https?:\/\//i.test(url)){
+    qrContainer.textContent = 'Inserisci un link valido che inizi con http:// o https://';
+    document.getElementById('copy-row').style.display = 'none';
+    return;
+  }
+
+  try{
+    new QRCode(qrContainer, {
+      text: url,
+      width: 150,
+      height: 150,
+      colorDark: "#1e2a45",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    document.getElementById('link-display').value = url;
+    document.getElementById('copy-row').style.display = 'flex';
+  } catch(e){
+    qrContainer.textContent = 'QR non disponibile in questo contesto.';
+  }
+}
+
+function copyLink(){
+  const input = document.getElementById('link-display');
+  input.select();
+  input.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(input.value).then(() => {
+    const btn = document.getElementById('copy-btn');
+    const original = btn.textContent;
+    btn.textContent = 'Copiato!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  }).catch(() => {});
+}
+
+function restartQuiz(){
+  current = 0;
+  score = 0;
+  answers = [];
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('start-screen').classList.remove('hidden');
+}
+</script>
+</body>
+</html>

@@ -39,3 +39,4 @@ jobs:
           git add index.html
           git commit -m "Rendi cliccabile Facebook"
           git push
+# trigger: 2

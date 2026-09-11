@@ -127,59 +127,59 @@ window.QUESTION_BANK = [
   },
   {
     "subject": "Storia",
-    "q": "In quale anno iniziò la Rivoluzione francese?",
-    "options": ["1776", "1789", "1815", "1848"],
+    "q": "Quale civiltà costruì il Colosseo?",
+    "options": ["Egizi", "Romani", "Greci", "Fenici"],
     "correct": 1,
-    "explain": "La Rivoluzione francese iniziò nel 1789; la presa della Bastiglia avvenne il 14 luglio."
+    "explain": "Il Colosseo fu costruito nell'antica Roma durante l'età imperiale."
   },
   {
     "subject": "Storia",
-    "q": "In quale anno fu proclamato il Regno d’Italia?",
-    "options": ["1848", "1861", "1870", "1915"],
+    "q": "Quale popolo costruì le piramidi di Giza?",
+    "options": ["Romani", "Egizi", "Etruschi", "Vichinghi"],
     "correct": 1,
-    "explain": "Il Regno d’Italia fu proclamato il 17 marzo 1861."
+    "explain": "Le piramidi di Giza furono costruite nell'antico Egitto come monumenti funerari per i faraoni."
   },
   {
     "subject": "Storia",
-    "q": "Chi fu il primo re del Regno d’Italia?",
-    "options": ["Giuseppe Garibaldi", "Camillo Benso di Cavour", "Vittorio Emanuele II", "Umberto I"],
-    "correct": 2,
-    "explain": "Vittorio Emanuele II divenne il primo re d’Italia nel 1861."
-  },
-  {
-    "subject": "Storia",
-    "q": "In quale anno iniziò la Prima Guerra Mondiale?",
-    "options": ["1914", "1915", "1918", "1939"],
+    "q": "Chi è tradizionalmente considerato l’autore dell’Iliade e dell’Odissea?",
+    "options": ["Omero", "Virgilio", "Dante", "Socrate"],
     "correct": 0,
-    "explain": "La Prima Guerra Mondiale iniziò nel 1914; l’Italia entrò nel conflitto nel 1915."
+    "explain": "La tradizione attribuisce a Omero l'Iliade e l'Odissea, due grandi poemi dell'antica Grecia."
   },
   {
     "subject": "Storia",
-    "q": "In che anno terminò la Seconda Guerra Mondiale?",
-    "options": ["1943", "1944", "1945", "1946"],
+    "q": "In quale periodo storico visse Leonardo da Vinci?",
+    "options": ["Preistoria", "Medioevo", "Rinascimento", "Età contemporanea"],
     "correct": 2,
-    "explain": "La Seconda Guerra Mondiale terminò nel 1945."
+    "explain": "Leonardo da Vinci visse tra il Quattrocento e il Cinquecento ed è uno dei protagonisti del Rinascimento."
   },
   {
     "subject": "Storia",
-    "q": "Chi guidò il regime fascista in Italia?",
-    "options": ["Benito Mussolini", "Adolf Hitler", "Francisco Franco", "Winston Churchill"],
+    "q": "Quale invenzione di Johannes Gutenberg contribuì alla diffusione dei libri in Europa?",
+    "options": ["La bussola", "La stampa a caratteri mobili", "Il telescopio", "La macchina a vapore"],
+    "correct": 1,
+    "explain": "La stampa a caratteri mobili rese possibile produrre libri più rapidamente e favorì la diffusione della cultura scritta."
+  },
+  {
+    "subject": "Storia",
+    "q": "Cristoforo Colombo raggiunse il continente americano nel…",
+    "options": ["1292", "1492", "1692", "1792"],
+    "correct": 1,
+    "explain": "Cristoforo Colombo raggiunse le Americhe nel 1492 durante il viaggio finanziato dalla Corona spagnola."
+  },
+  {
+    "subject": "Storia",
+    "q": "Come si chiamavano le grandi costruzioni fortificate tipiche del Medioevo?",
+    "options": ["Acquedotti", "Castelli", "Piramidi", "Anfiteatri"],
+    "correct": 1,
+    "explain": "I castelli erano strutture fortificate molto diffuse nel Medioevo e avevano funzioni difensive e residenziali."
+  },
+  {
+    "subject": "Storia",
+    "q": "Quale antica civiltà è associata alla nascita dei Giochi Olimpici?",
+    "options": ["Greci", "Egizi", "Romani", "Maya"],
     "correct": 0,
-    "explain": "Il regime fascista italiano fu guidato da Benito Mussolini."
-  },
-  {
-    "subject": "Storia",
-    "q": "Con quale evento viene generalmente indicato l’inizio della Seconda Guerra Mondiale in Europa?",
-    "options": ["La marcia su Roma", "L’invasione della Polonia", "La rivoluzione russa", "La caduta del Muro di Berlino"],
-    "correct": 1,
-    "explain": "L’invasione tedesca della Polonia, il 1° settembre 1939, segnò l’inizio della guerra in Europa."
-  },
-  {
-    "subject": "Storia",
-    "q": "Quale evento del 1989 è considerato uno dei simboli della fine della Guerra Fredda?",
-    "options": ["Lo sbarco in Normandia", "La caduta del Muro di Berlino", "La nascita dell’ONU", "La crisi di Cuba"],
-    "correct": 1,
-    "explain": "La caduta del Muro di Berlino nel 1989 è uno dei simboli della fine della Guerra Fredda."
+    "explain": "I Giochi Olimpici antichi nacquero in Grecia e si svolgevano a Olimpia."
   },
   {
     "subject": "Geografia",
